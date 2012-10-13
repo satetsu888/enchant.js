@@ -17,7 +17,7 @@ enchant.mixi.init = function(app_id){
 
     console.log("mixi.init called");
     mixi.init({
-        appId:    app_id
+        appId:    "mixiapp-web_"+app_id
     });
 
     console.log("mixi.auth called");
