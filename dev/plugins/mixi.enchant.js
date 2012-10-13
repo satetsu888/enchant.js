@@ -77,6 +77,23 @@ enchant.mixi.voice = function(body) {
                 }, params);
 };
 
+enchant.mixi.enableScroll = function(){
+    var tags = enchant.ENV.USE_DEFAULT_EVENT_TAGS;
+    if(tags[tags.length-1] != "div"){
+        tags.push('div');
+    }
+};
+
+enchant.mixi.disableScroll = function(){
+    var tags = enchant.ENV.USE_DEFAULT_EVENT_TAGS;
+    if(tags[tags.length-1] == "div"){
+        tags.pop();
+    }
+
+    mixi.window.scrollTo();
+};
+
+
 function retrieveGETqs() {
     var qsParm = {};
     var query = window.location.search.substring(1);
