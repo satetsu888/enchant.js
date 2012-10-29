@@ -1,7 +1,7 @@
 
 (function() {
 
-enchant.mixi = {};
+enchant.mixi = { assets: ['pause_button.png'] };
 
 enchant.mixi.app_id;
 
@@ -93,6 +93,41 @@ enchant.mixi.disableScroll = function(){
     mixi.window.scrollTo();
 };
 
+enchant.mixi.PauseButton = enchant.Class.create(enchant.Sprite, {
+
+
+    initialize: function(){
+        var game = enchant.Game.instance;
+        enchant.Sprite.call(this, 32, 32);
+        var image = game.assets['pause_button.png'];
+        this.image = image;
+        this.x = game.width - this.width;
+        this.y = 0;
+        this.frame = 0;
+
+        this.isPause = false;
+
+        this.addEventListener('touchstart', function(e){
+            this.tap(game);
+            });
+    },
+
+    tap: function(game){
+        if(this.isPause){
+            this.frame = 0;
+            enchant.mixi.disableScroll();
+            gadgets.window.adjustHeight();
+            game.start();
+            this.isPause = false;
+        } else {
+            this.frame = 1;
+            enchant.mixi.enableScroll();
+            game.pause();
+            this.isPause = true;
+        }
+    },
+
+});
 
 function retrieveGETqs() {
     var qsParm = {};
