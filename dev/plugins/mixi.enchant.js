@@ -3,6 +3,8 @@
 
 enchant.mixi = { assets: ['pause_button.png'] };
 
+enchant.mixi.result_PeopleAPI;
+
 enchant.mixi.app_id;
 
 enchant.mixi.init = function(app_id){
@@ -11,7 +13,9 @@ enchant.mixi.init = function(app_id){
         enchant.mixi.app_id = app_id;
     }
 
-    if (retrieveGETqs()["code"]){
+    var code = retrieveGETqs()["code"];
+    if (code){
+        get_from_api(code);
         return;
     }
 
@@ -20,10 +24,9 @@ enchant.mixi.init = function(app_id){
         appId:    "mixiapp-web_"+app_id
     });
 
-
     console.log("mixi.auth called");
     mixi.auth({
-        scope: "mixi_apps2",
+        scope: "mixi_apps2 r_profile",
         state: "touch"
     });
 
@@ -46,7 +49,7 @@ enchant.mixi.invite = function() {
 
 enchant.mixi.activity = function(title) {
 
-    console.log("ixi.activity called");
+    console.log("mixi.activity called");
     var params = {};
     params[opensocial.Activity.Field.TITLE] = title;
     var activity = opensocial.newActivity(params);
@@ -106,13 +109,13 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         });
     },
 
-    loadImage: function(name, src, callback) {
+    loadImage: function(id, src, callback) {
         if (callback == null) {
             callback = function() {
             };
         }
-        this.assets[name] = enchant.Surface.load(src);
-        this.assets[name].addEventListener('load', callback);
+        this.assets[id] = enchant.Surface.load(src);
+        this.assets[id].addEventListener('load', callback);
     },
 
 
@@ -141,7 +144,7 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
             this.load(assets[i], loadListener);
         }
         for(var i=0; i<friends.datas.length; i++){
-            this.loadImage(friends.datas[i].nickname, friends.datas[i].thumbnailUrl,loadListener);
+            this.loadImage(friends.datas[i].id, friends.datas[i].thumbnailUrl,loadListener);
         }
         this.pushScene(this.loadingScene);
     },
@@ -192,7 +195,7 @@ enchant.mixi.Friends = enchant.Class.create({
 
     initialize: function(){
         if(enchant.mixi.Friends.instance){
-            return enchant.mixi.Friends.instance;
+            return enchant.mixi.Friends.instance.datas;
         }
 
         this.datas = this.getFriends("all");
@@ -202,13 +205,19 @@ enchant.mixi.Friends = enchant.Class.create({
     getFriends: function(mode){
         var friends_array = new Array();
 
-        //API叩く
-
-        //enchant.mixi = { assets: ['https://si0.twimg.com/profile_images/2008781742/icon_reasonably_small.png'] };
-
         //Friendオブジェクト作る
-        var friend = new enchant.mixi.Friend(100, "IHR",'https://si0.twimg.com/profile_images/2008781742/icon_reasonably_small.png');
+        var peoples = enchant.mixi.result_PeopleAPI;
+        for(var i=0; i<peoples.entry.length; i++){
+        if (!peoples.entry[i].thumbnailUrl || ! peoples.entry[i].id){
+            continue;
+        }
+        var friend = new enchant.mixi.Friend(
+            peoples.entry[i].id,
+            peoples.entry[i].displayName,
+            peoples.entry[i].thumbnailUrl
+            );
         friends_array.push(friend);
+        }
 
         return friends_array;
     }
@@ -241,5 +250,21 @@ function retrieveGETqs() {
     }
     return qsParm;
 }
+
+
+function get_from_api(code){
+    var xhr = new XMLHttpRequest();
+    xhr.open("post", "../../../mixi_graph_api.pl", false);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4)
+            if (xhr.status === 200)
+                console.log(xhr.responseText);
+                enchant.mixi.result_PeopleAPI = eval("("+xhr.responseText+")");
+    };
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send('code='+code);
+    console.log("code:"+code);
+}
+
 
 })();
