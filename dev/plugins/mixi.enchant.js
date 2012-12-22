@@ -3,8 +3,6 @@
 
 enchant.mixi = { assets: ['pause_button.png'] };
 
-enchant.mixi.result_PeopleAPI;
-
 enchant.mixi.app_id;
 
 enchant.mixi.init = function(app_id){
@@ -15,7 +13,7 @@ enchant.mixi.init = function(app_id){
 
     var code = retrieveGETqs()["code"];
     if (code){
-        call_api("people", "get", code);
+        call_api("people", "get", "/@friends", code);
         return;
     }
 
@@ -237,6 +235,27 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
 
 });
 
+enchant.mixi.SharedObject = enchant.Class.create({
+
+    initialize: function(){
+
+    },
+
+    set: function(){
+        var param = {};
+        param.high_score = 100;
+        param.last_play  = "2012/12/23 12:10";
+        call_api("persistence","post","/@self","",JSON.stringify(param));
+    },
+
+    get: function(){
+
+    },
+
+    get_friends: function(){
+        call_api("persistence","get","/@friends");
+    }
+});
 
 function retrieveGETqs() {
     var qsParm = {};
@@ -254,28 +273,42 @@ function retrieveGETqs() {
 }
 
 
-function call_api(api, method, code){
+function call_api(api, method, target, code, param){
     var xhr = new XMLHttpRequest();
     xhr.open("post", "../../../mixi_graph_api.pl", false);
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4)
             if (xhr.status === 200)
                 console.log(xhr.responseText);
-                var res = eval("("+xhr.responseText+")");
+                var res = JSON.parse(xhr.responseText);
                 if(api=="people"){
                     enchant.mixi.result_PeopleAPI = res.result;
-                    enchant.mixi.token = res.token;
+                    enchant.mixi.token = JSON.stringify(res.token);
                 }
     };
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    var param = "api="+api+"&method="+method;
+
+    var url_param = _make_url_param(api,method,target,code,param);
+    xhr.send(url_param);
+}
+
+function _make_url_param(api, method, target, code, param){
+
+    var url_param = "api="+api+"&method="+method+"&target="+target;
+
     if(enchant.mixi.token != null){
-        param += '&token='+enchant.mixi.token;
+        console.log(enchant.mixi.token);
+        url_param += '&token='+enchant.mixi.token;
     } else {
-        param += '&code='+code;
+        url_param += "&code="+code;
+        console.log("code:"+code);
     }
-    xhr.send(param);
-    console.log("code:"+code);
+
+    if(param !=null){
+        url_param += "&param="+param;
+    }
+
+    return url_param;
 }
 
 

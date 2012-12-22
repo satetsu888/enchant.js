@@ -9,21 +9,21 @@ use constant {
     REDIRECT_URI    => 'http://www.satetsu888.com/enchant.js/examples/expert/getbanana/',
 
     MIXI_TOKEN_ENDPOINT => 'https://secure.mixi-platform.com/2/token',
-    MIXI_API_ENDPOINT   => 'http://api.mixi-platform.com/2',
+    MIXI_API_ENDPOINT   => 'https://api.mixi-platform.com/2',
 
     API_END_POINT_MAP => {
         people      => '/people',
         persistence => '/apps/appdata',
     },
     API_FIELD_CONST   =>{
-        people      => {
-            get => '?fields=id,displayName,thumbnailUrl,thumbnailDetails',
+        people => {
+            get  => '?fields=id,displayName,thumbnailUrl,thumbnailDetails',
         },
         persistence => {
             post => '',
             get  => '?fields=high_score,last_play',
         },
-    }
+    },
 };
 
 use URI::Escape qw/ uri_escape /;
@@ -36,8 +36,10 @@ use CGI;
 my $q = CGI->new;
 my $api    = $q->param('api');
 my $method = $q->param('method');
+my $target = $q->param('target');
 my $code   = $q->param('code');
 my $token  = $q->param('token');
+my $param  = $q->param('param');
 
 sub request {
     my ($method, $url, $data_arr) = @_;
@@ -50,6 +52,24 @@ sub request {
         my $data_str = join '&', map { uri_escape($_) . '=' . uri_escape($data_arr->{$_}) } keys %$data_arr;
         $req->content_type('application/x-www-form-urlencoded');
         $req->content($data_str);
+    }
+
+    my $ua = LWP::UserAgent->new();
+    my $res = $ua->request($req);
+
+    return $res;
+}
+
+sub json_request {
+    my ($method, $url, $data_arr) = @_;
+
+    my $req = HTTP::Request->new(
+        $method => $url
+    );
+
+    if ($method eq 'POST') {
+        $req->content_type('application/json');
+        $req->content($data_arr);
     }
 
     my $ua = LWP::UserAgent->new();
@@ -92,12 +112,21 @@ sub get_new_token {
 }
 
 sub call {
-    my ($endpoint, $token) = @_;
+    my ($api, $method, $token, $param) = @_;
+    my $endpoint = API_END_POINT_MAP->{$api}.'/@me'.$target.API_FIELD_CONST->{$api}->{$method};
 
-    my $url = MIXI_API_ENDPOINT . $endpoint . '&oauth_token=' . uri_escape($token->{'access_token'});
+    my $delimita = ($endpoint =~ qr/\?/) ? '&' : '?';
+    my $url = MIXI_API_ENDPOINT . $endpoint . $delimita .'oauth_token=' . uri_escape($token->{'access_token'});
     my $res;
 
-    $res = request('GET', $url);
+    warn Data::Dumper::Dumper uc $method;
+    warn Data::Dumper::Dumper $url;
+
+    if($api eq 'people'){
+        $res = request(uc $method, $url, $param);
+    } elsif($api eq "persistence"){
+        $res = json_request(uc $method, $url, $param);
+    }
 
     if (defined $res->header('WWW-Authenticate')) {
         my $error_msg = $res->header('WWW-Authenticate');
@@ -123,13 +152,17 @@ print "Content-type: text/html\n\n";
 #print Dumper($code);
 if($code){
     $token = get_token($code);
+} else {
+    $token = decode_json($token);
 }
 
-my $result = call(API_END_POINT_MAP->{$api}.'/@me/@friends'.API_FIELD_CONST->{$api}->{$method}, $token);
+warn Data::Dumper::Dumper $token;
+warn Data::Dumper::Dumper $target;
+warn Data::Dumper::Dumper $param;
+my $result = call($api, $method, $token, $param);
 
 my $json_href = { token => $token, result => $result };
 print encode_json($json_href);
-warn Data::Dumper::Dumper $json_href;
 
 1;
 
