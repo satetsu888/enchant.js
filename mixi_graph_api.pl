@@ -9,7 +9,21 @@ use constant {
     REDIRECT_URI    => 'http://www.satetsu888.com/enchant.js/examples/expert/getbanana/',
 
     MIXI_TOKEN_ENDPOINT => 'https://secure.mixi-platform.com/2/token',
-    MIXI_API_ENDPOINT   => 'http://api.mixi-platform.com/2'
+    MIXI_API_ENDPOINT   => 'http://api.mixi-platform.com/2',
+
+    API_END_POINT_MAP => {
+        people      => '/people',
+        persistence => '/apps/appdata',
+    },
+    API_FIELD_CONST   =>{
+        people      => {
+            get => '?fields=id,displayName,thumbnailUrl,thumbnailDetails',
+        },
+        persistence => {
+            post => '',
+            get  => '?fields=high_score,last_play',
+        },
+    }
 };
 
 use URI::Escape qw/ uri_escape /;
@@ -20,7 +34,10 @@ use Data::Dumper;
 use CGI;
 
 my $q = CGI->new;
-my $code = $q->param('code');
+my $api    = $q->param('api');
+my $method = $q->param('method');
+my $code   = $q->param('code');
+my $token  = $q->param('token');
 
 sub request {
     my ($method, $url, $data_arr) = @_;
@@ -78,7 +95,9 @@ sub call {
     my ($endpoint, $token) = @_;
 
     my $url = MIXI_API_ENDPOINT . $endpoint . '&oauth_token=' . uri_escape($token->{'access_token'});
-    my $res = request('GET', $url);
+    my $res;
+
+    $res = request('GET', $url);
 
     if (defined $res->header('WWW-Authenticate')) {
         my $error_msg = $res->header('WWW-Authenticate');
@@ -102,11 +121,15 @@ sub call {
 print "Content-type: text/html\n\n";
 
 #print Dumper($code);
-my $auth_code = $code;
-my $token = get_token($auth_code);
-my $json_href = call('/people/@me/@friends?fields=id,displayName,thumbnailUrl,thumbnailDetails', $token);
+if($code){
+    $token = get_token($code);
+}
 
+my $result = call(API_END_POINT_MAP->{$api}.'/@me/@friends'.API_FIELD_CONST->{$api}->{$method}, $token);
+
+my $json_href = { token => $token, result => $result };
 print encode_json($json_href);
+warn Data::Dumper::Dumper $json_href;
 
 1;
 

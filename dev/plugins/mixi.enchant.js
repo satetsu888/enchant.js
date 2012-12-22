@@ -15,7 +15,7 @@ enchant.mixi.init = function(app_id){
 
     var code = retrieveGETqs()["code"];
     if (code){
-        get_from_api(code);
+        call_api("people", "get", code);
         return;
     }
 
@@ -254,17 +254,27 @@ function retrieveGETqs() {
 }
 
 
-function get_from_api(code){
+function call_api(api, method, code){
     var xhr = new XMLHttpRequest();
     xhr.open("post", "../../../mixi_graph_api.pl", false);
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4)
             if (xhr.status === 200)
                 console.log(xhr.responseText);
-                enchant.mixi.result_PeopleAPI = eval("("+xhr.responseText+")");
+                var res = eval("("+xhr.responseText+")");
+                if(api=="people"){
+                    enchant.mixi.result_PeopleAPI = res.result;
+                    enchant.mixi.token = res.token;
+                }
     };
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send('code='+code);
+    var param = "api="+api+"&method="+method;
+    if(enchant.mixi.token != null){
+        param += '&token='+enchant.mixi.token;
+    } else {
+        param += '&code='+code;
+    }
+    xhr.send(param);
     console.log("code:"+code);
 }
 
