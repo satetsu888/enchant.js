@@ -104,7 +104,7 @@ print "Content-type: text/html\n\n";
 #print Dumper($code);
 my $auth_code = $code;
 my $token = get_token($auth_code);
-my $json_href = call('/people/@me/@friends?fields=id,displayName,thumbnailUrl', $token);
+my $json_href = call('/people/@me/@friends?fields=id,displayName,thumbnailUrl,thumbnailDetails', $token);
 
 print encode_json($json_href);
 

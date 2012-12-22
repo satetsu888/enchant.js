@@ -29,7 +29,6 @@ enchant.mixi.init = function(app_id){
         scope: "mixi_apps2 r_profile",
         state: "touch"
     });
-
 };
 
 enchant.mixi.invite = function() {
@@ -150,7 +149,7 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
     },
 
     end: function(){
-
+        game.pause();
     },
 
 });
@@ -214,7 +213,9 @@ enchant.mixi.Friends = enchant.Class.create({
         var friend = new enchant.mixi.Friend(
             peoples.entry[i].id,
             peoples.entry[i].displayName,
-            peoples.entry[i].thumbnailUrl
+            peoples.entry[i].thumbnailUrl,
+            peoples.entry[i].thumbnailDetails[0].height,
+            peoples.entry[i].thumbnailDetails[0].width
             );
         friends_array.push(friend);
         }
@@ -225,12 +226,13 @@ enchant.mixi.Friends = enchant.Class.create({
 
 enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
 
-    initialize: function(id, nickname, thumbnailUrl){
+    initialize: function(id, nickname, thumbnailUrl, img_height, img_width){
         var game = enchant.Game.instance;
-        enchant.Sprite.call(this, 100,100);
+        enchant.Sprite.call(this, img_width, img_height);
         this.id           = id;
         this.nickname     = nickname;
         this.thumbnailUrl = thumbnailUrl;
+        this.image = game.assets[this.id];
     },
 
 });
