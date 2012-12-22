@@ -178,7 +178,7 @@ enchant.mixi.PauseButton = enchant.Class.create(enchant.Sprite, {
             this.frame = 0;
             enchant.mixi.disableScroll();
             gadgets.window.adjustHeight();
-            game.start();
+            game.resume();
             this.isPause = false;
         } else {
             this.frame = 1;
