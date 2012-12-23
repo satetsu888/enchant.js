@@ -239,6 +239,10 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
         this.image = game.assets[this.id];
     },
 
+    set_param: function(key, value){
+        this[key] = value;
+    },
+
 });
 
 enchant.mixi.SharedObject = enchant.Class.create({

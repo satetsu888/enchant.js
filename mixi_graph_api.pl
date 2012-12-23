@@ -159,7 +159,7 @@ if($code){
 #warn Data::Dumper::Dumper $token;
 #warn Data::Dumper::Dumper $target;
 warn Data::Dumper::Dumper $param;
-$param = decode_json($param);
+$param = decode_json($param) if defined $param;
 my $result = call($api, $method, $token, $param);
 
 my $json_href = { token => $token, result => $result };
