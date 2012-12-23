@@ -3,6 +3,10 @@
 
 enchant.mixi = { assets: ['pause_button.png'] };
 
+enchant.mixi.apiResult = {};
+enchant.mixi.apiResult["people"] = {};
+enchant.mixi.apiResult["persistence"] = {};
+
 enchant.mixi.app_id;
 
 enchant.mixi.init = function(app_id){
@@ -13,7 +17,9 @@ enchant.mixi.init = function(app_id){
 
     var code = retrieveGETqs()["code"];
     if (code){
-        call_api("people", "get", "/@friends", code);
+        var param ={};
+        param.fields = "id,displayName,thumbnailUrl,thumbnailDetails";
+        call_api("people", "get", "/@friends", code, JSON.stringify(param));
         return;
     }
 
@@ -203,7 +209,7 @@ enchant.mixi.Friends = enchant.Class.create({
         var friends_array = new Array();
 
         //Friendオブジェクト作る
-        var peoples = enchant.mixi.result_PeopleAPI;
+        var peoples = enchant.mixi.apiResult["people"]["/@friends"];
         for(var i=0; i<peoples.entry.length; i++){
         if (!peoples.entry[i].thumbnailUrl || ! peoples.entry[i].id){
             continue;
@@ -241,15 +247,14 @@ enchant.mixi.SharedObject = enchant.Class.create({
 
     },
 
-    set: function(){
-        var param = {};
-        param.high_score = 100;
-        param.last_play  = "2012/12/23 12:10";
+    set: function(param){
         call_api("persistence","post","/@self","",JSON.stringify(param));
     },
 
-    get: function(){
-
+    get: function(fields){
+        var param = {};
+        param.fields = fields;
+        call_api("persistence","get","/@self","",JSON.stringify(param));
     },
 
     get_friends: function(){
@@ -281,10 +286,8 @@ function call_api(api, method, target, code, param){
             if (xhr.status === 200)
                 console.log(xhr.responseText);
                 var res = JSON.parse(xhr.responseText);
-                if(api=="people"){
-                    enchant.mixi.result_PeopleAPI = res.result;
-                    enchant.mixi.token = JSON.stringify(res.token);
-                }
+                enchant.mixi.apiResult[api][target] = res.result;
+                enchant.mixi.token = JSON.stringify(res.token);
     };
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 

@@ -15,15 +15,6 @@ use constant {
         people      => '/people',
         persistence => '/apps/appdata',
     },
-    API_FIELD_CONST   =>{
-        people => {
-            get  => '?fields=id,displayName,thumbnailUrl,thumbnailDetails',
-        },
-        persistence => {
-            post => '',
-            get  => '?fields=high_score,last_play',
-        },
-    },
 };
 
 use URI::Escape qw/ uri_escape /;
@@ -44,12 +35,18 @@ my $param  = $q->param('param');
 sub request {
     my ($method, $url, $data_arr) = @_;
 
+    my $data_str = join '&', map { uri_escape($_) . '=' . uri_escape($data_arr->{$_}) } keys %$data_arr;
+
+    if($method eq 'GET'){
+        my $delimita = ($url =~ qr/\?/) ? '&' : '?';
+        $url .= $delimita.$data_str;
+    }
+
     my $req = HTTP::Request->new(
         $method => $url
     );
 
     if ($method eq 'POST') {
-        my $data_str = join '&', map { uri_escape($_) . '=' . uri_escape($data_arr->{$_}) } keys %$data_arr;
         $req->content_type('application/x-www-form-urlencoded');
         $req->content($data_str);
     }
@@ -62,6 +59,8 @@ sub request {
 
 sub json_request {
     my ($method, $url, $data_arr) = @_;
+    $data_arr = encode_json($data_arr);
+    warn $data_arr;
 
     my $req = HTTP::Request->new(
         $method => $url
@@ -113,18 +112,19 @@ sub get_new_token {
 
 sub call {
     my ($api, $method, $token, $param) = @_;
-    my $endpoint = API_END_POINT_MAP->{$api}.'/@me'.$target.API_FIELD_CONST->{$api}->{$method};
+    my $endpoint = API_END_POINT_MAP->{$api}.'/@me'.$target;
 
-    my $delimita = ($endpoint =~ qr/\?/) ? '&' : '?';
-    my $url = MIXI_API_ENDPOINT . $endpoint . $delimita .'oauth_token=' . uri_escape($token->{'access_token'});
+    my $url = MIXI_API_ENDPOINT . $endpoint . '?oauth_token=' . uri_escape($token->{'access_token'});
+    #$param->{oauth_token} = uri_escape($token->{access_token});
     my $res;
 
-    warn Data::Dumper::Dumper uc $method;
+    #warn Data::Dumper::Dumper uc $method;
     warn Data::Dumper::Dumper $url;
+    warn Data::Dumper::Dumper $param;
 
-    if($api eq 'people'){
+    if($method eq 'get'){
         $res = request(uc $method, $url, $param);
-    } elsif($api eq "persistence"){
+    } elsif($method eq "post"){
         $res = json_request(uc $method, $url, $param);
     }
 
@@ -156,9 +156,10 @@ if($code){
     $token = decode_json($token);
 }
 
-warn Data::Dumper::Dumper $token;
-warn Data::Dumper::Dumper $target;
+#warn Data::Dumper::Dumper $token;
+#warn Data::Dumper::Dumper $target;
 warn Data::Dumper::Dumper $param;
+$param = decode_json($param);
 my $result = call($api, $method, $token, $param);
 
 my $json_href = { token => $token, result => $result };
