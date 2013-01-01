@@ -1,7 +1,9 @@
 
 (function() {
 
-enchant.mixi = { assets: ['pause_button.png'] };
+enchant.mixi = { assets: ['./img/pause_button.png'] };
+
+enchant.mixi.config = { call_api_file_path: "mixi_graph_api.pl"};
 
 enchant.mixi.apiResult = {};
 enchant.mixi.apiResult["people"] = {};
@@ -163,7 +165,7 @@ enchant.mixi.PauseButton = enchant.Class.create(enchant.Sprite, {
     initialize: function(){
         var game = enchant.Game.instance;
         enchant.Sprite.call(this, 32, 32);
-        var image = game.assets['pause_button.png'];
+        var image = game.assets['./img/pause_button.png'];
         this.image = image;
         this.x = game.width - this.width;
         this.y = 0;
@@ -243,6 +245,10 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
         this[key] = value;
     },
 
+    resize: function(xsize, ysize){
+        this.scale(xsize/this.x, ysize,this.y);
+    },
+
 });
 
 enchant.mixi.SharedObject = enchant.Class.create({
@@ -284,7 +290,7 @@ function retrieveGETqs() {
 
 function call_api(api, method, target, code, param){
     var xhr = new XMLHttpRequest();
-    xhr.open("post", "../../../mixi_graph_api.pl", false);
+    xhr.open("post", enchant.mixi.config.call_api_file_path, false);
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4)
             if (xhr.status === 200)
