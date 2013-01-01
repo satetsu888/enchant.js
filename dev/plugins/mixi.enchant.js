@@ -246,7 +246,9 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
     },
 
     resize: function(xsize, ysize){
-        this.scale(xsize/this.x, ysize,this.y);
+        this.scale(xsize/this.width, ysize/this.height);
+        this.x -= (this.width  - xsize)/2;
+        this.y -= (this.height - ysize)/2;
     },
 
 });
