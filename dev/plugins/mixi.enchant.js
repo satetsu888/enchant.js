@@ -253,6 +253,20 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
 
 });
 
+enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
+
+    initialize: function(){
+        enchant.Group.call(this);
+
+        var friends = new enchant.mixi.Friends().getFriends("all");
+        for(var i in friends){
+            friends[i].resize(32,32);
+            friends[i].x += 32 * i;
+            this.addChild(friends[i]);
+        }
+    },
+});
+
 enchant.mixi.SharedObject = enchant.Class.create({
 
     initialize: function(){
