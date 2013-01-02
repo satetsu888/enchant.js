@@ -21,7 +21,43 @@ enchant.mixi.init = function(app_id){
     if (code){
         var param ={};
         param.fields = "id,displayName,thumbnailUrl,thumbnailDetails";
-        call_api("people", "get", "/@friends", code, JSON.stringify(param));
+        call_api(
+                "people",
+                "get",
+                "/@friends",
+                code,
+                JSON.stringify(param),
+                function(res){
+                    enchant.mixi.apiResult["people"]["/@friends"] = res;
+                });
+
+        call_api(
+                "people",
+                "get",
+                "/@self",
+                "",
+                JSON.stringify(param),
+                function(res){
+                    enchant.mixi.apiResult["people"]["/@self"] = res;
+                });
+
+        var so = new enchant.mixi.SharedObject();
+
+        so.get_friends({}, function(res){
+            console.log(res);
+            enchant.mixi.apiResult["persistence"]["/@friends"] = res;
+        });
+        so.get("", function(res){
+            console.log(res);
+            enchant.mixi.apiResult["persistence"]["/@self"] = res;
+        });
+
+        var set_params = {};
+        set_params.last_play = new Date();
+        so.set(set_params, function(res){
+            console.log(res);
+        });
+
         return;
     }
 
@@ -35,6 +71,7 @@ enchant.mixi.init = function(app_id){
         scope: "mixi_apps2 r_profile",
         state: "touch"
     });
+
 };
 
 enchant.mixi.invite = function() {
@@ -283,8 +320,7 @@ enchant.mixi.SharedObject = enchant.Class.create({
         call_api("persistence","get","/@self","",JSON.stringify(param), callback);
     },
 
-    get_friends: function(){
-        var param = {};
+    get_friends: function(param, callback){
         call_api("persistence","get","/@friends","",JSON.stringify(param), callback);
     }
 });
@@ -314,7 +350,6 @@ function call_api(api, method, target, code, param, callback){
             if (xhr.status === 200)
                 console.log(xhr.responseText);
                 var res = JSON.parse(xhr.responseText);
-                enchant.mixi.apiResult[api][target] = res.result;
                 enchant.mixi.token = JSON.stringify(res.token);
                 callback(res.result);
     };
@@ -342,6 +377,5 @@ function _make_url_param(api, method, target, code, param){
 
     return url_param;
 }
-
 
 })();
