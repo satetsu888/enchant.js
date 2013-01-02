@@ -273,18 +273,19 @@ enchant.mixi.SharedObject = enchant.Class.create({
 
     },
 
-    set: function(param){
-        call_api("persistence","post","/@self","",JSON.stringify(param));
+    set: function(param, callback){
+        call_api("persistence","post","/@self","",JSON.stringify(param), callback);
     },
 
-    get: function(fields){
+    get: function(fields, callback){
         var param = {};
         param.fields = fields;
-        call_api("persistence","get","/@self","",JSON.stringify(param));
+        call_api("persistence","get","/@self","",JSON.stringify(param), callback);
     },
 
     get_friends: function(){
-        call_api("persistence","get","/@friends");
+        var param = {};
+        call_api("persistence","get","/@friends","",JSON.stringify(param), callback);
     }
 });
 
@@ -304,7 +305,8 @@ function retrieveGETqs() {
 }
 
 
-function call_api(api, method, target, code, param){
+function call_api(api, method, target, code, param, callback){
+    if (callback == null){ callback = function(){}; };
     var xhr = new XMLHttpRequest();
     xhr.open("post", enchant.mixi.config.call_api_file_path, false);
     xhr.onreadystatechange = function () {
@@ -314,6 +316,7 @@ function call_api(api, method, target, code, param){
                 var res = JSON.parse(xhr.responseText);
                 enchant.mixi.apiResult[api][target] = res.result;
                 enchant.mixi.token = JSON.stringify(res.token);
+                callback(res.result);
     };
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
