@@ -267,15 +267,18 @@ enchant.mixi.Friends = enchant.Class.create({
     }
 });
 
-enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
+enchant.mixi.Friend = enchant.Class.create( enchant.Group,{
 
     initialize: function(id, nickname, thumbnailUrl, img_height, img_width){
         var game = enchant.Game.instance;
-        enchant.Sprite.call(this, img_width, img_height);
+        enchant.Group.call(this);
         this.id           = id;
         this.nickname     = nickname;
         this.thumbnailUrl = thumbnailUrl;
-        this.image = game.assets[this.id];
+        //this.image = game.assets[this.id];
+        this.icon = new enchant.Sprite(img_width, img_height);
+        this.icon.image = game.assets[this.id];
+        this.addChild(this.icon);
     },
 
     set_param: function(key, value){
@@ -283,9 +286,9 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Sprite,{
     },
 
     resize: function(xsize, ysize){
-        this.scale(xsize/this.width, ysize/this.height);
-        this.x -= (this.width  - xsize)/2;
-        this.y -= (this.height - ysize)/2;
+        this.icon.scale(xsize/this.icon.width, ysize/this.icon.height);
+        this.icon.x -= (this.icon.width  - xsize)/2;
+        this.icon.y -= (this.icon.height - ysize)/2;
     },
 
 });
@@ -298,7 +301,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
         var friends = new enchant.mixi.Friends().getFriends("all");
         for(var i in friends){
             friends[i].resize(32,32);
-            friends[i].x += 32 * i;
+            friends[i].x = 32 * i;
             this.addChild(friends[i]);
         }
     },
