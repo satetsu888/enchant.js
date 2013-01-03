@@ -28,7 +28,8 @@ enchant.mixi.init = function(app_id){
                 code,
                 JSON.stringify(param),
                 function(res){
-                    enchant.mixi.apiResult["people"]["/@friends"] = res;
+                    enchant.mixi.apiResult["people"]["/@friends"] =
+                        _convert_res_as_hash_for_people(res.entry);
                 });
 
         call_api(
@@ -38,18 +39,19 @@ enchant.mixi.init = function(app_id){
                 "",
                 JSON.stringify(param),
                 function(res){
-                    enchant.mixi.apiResult["people"]["/@self"] = res;
+                    enchant.mixi.apiResult["people"]["/@self"] =
+                        _convert_res_as_hash_for_people(res.entry, "/@self");
                 });
 
         var so = new enchant.mixi.SharedObject();
 
         so.get_friends({}, function(res){
-            console.log(res);
-            enchant.mixi.apiResult["persistence"]["/@friends"] = res;
+            enchant.mixi.apiResult["persistence"]["/@friends"] =
+                _convert_res_as_hash_for_persistence(res.entry);
         });
         so.get("", function(res){
-            console.log(res);
-            enchant.mixi.apiResult["persistence"]["/@self"] = res;
+            enchant.mixi.apiResult["persistence"]["/@self"] =
+                _convert_res_as_hash_for_persistence(res.entry) ;
         });
 
         var set_params = {};
@@ -249,16 +251,16 @@ enchant.mixi.Friends = enchant.Class.create({
 
         //Friendオブジェクト作る
         var peoples = enchant.mixi.apiResult["people"]["/@friends"];
-        for(var i=0; i<peoples.entry.length; i++){
-        if (!peoples.entry[i].thumbnailUrl || ! peoples.entry[i].id){
+        for(var i in peoples){
+        if (!peoples[i].thumbnailUrl || ! peoples[i].id){
             continue;
         }
         var friend = new enchant.mixi.Friend(
-            peoples.entry[i].id,
-            peoples.entry[i].displayName,
-            peoples.entry[i].thumbnailUrl,
-            peoples.entry[i].thumbnailDetails[0].height,
-            peoples.entry[i].thumbnailDetails[0].width
+            peoples[i].id,
+            peoples[i].displayName,
+            peoples[i].thumbnailUrl,
+            peoples[i].thumbnailDetails[0].height,
+            peoples[i].thumbnailDetails[0].width
             );
         friends_array.push(friend);
         }
@@ -299,6 +301,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
         enchant.Group.call(this);
 
         var friends = new enchant.mixi.Friends().getFriends("all");
+
         for(var i in friends){
             friends[i].resize(32,32);
             friends[i].x = 32 * i;
@@ -351,8 +354,8 @@ function call_api(api, method, target, code, param, callback){
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4)
             if (xhr.status === 200)
-                console.log(xhr.responseText);
                 var res = JSON.parse(xhr.responseText);
+                console.log(res);
                 enchant.mixi.token = JSON.stringify(res.token);
                 callback(res.result);
     };
@@ -381,4 +384,23 @@ function _make_url_param(api, method, target, code, param){
     return url_param;
 }
 
+function _convert_res_as_hash_for_persistence(array){
+    var hash_res = {};
+    for(var i in array){
+        hash_res[array[i].id] = array[i].data;
+    }
+    return hash_res;
+}
+function _convert_res_as_hash_for_people(array, target){
+    var hash_res = {};
+    if(target =="/@self"){
+        hash_res[array.id] = array;
+    }
+    else {
+        for(var i in array){
+            hash_res[array[i].id] = array[i];
+        }
+    }
+    return hash_res;
+}
 })();
