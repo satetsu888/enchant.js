@@ -164,7 +164,8 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
 
 
     start: function(){
-        var friends = new enchant.mixi.Friends();
+        var friends = new enchant.mixi.Friends().getFriends("all");
+        var me      = new enchant.mixi.Friends().getSelf();
         var loaded = 0;
         var loadListener = function(){
             var e = new enchant.Event('progress');
@@ -182,14 +183,16 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         var assets = this._assets.filter(function(asset) {
             return asset in o ? false : o[asset] = true;
         });
-        var total = assets.length + friends.datas.length;
+        var total = assets.length + friends.length;
 
         for (i = 0, l = assets.length; i < l; i++) {
             this.load(assets[i], loadListener);
         }
-        for(var i=0; i<friends.datas.length; i++){
-            this.loadImage(friends.datas[i].id, friends.datas[i].thumbnailUrl,loadListener);
+        for(var i=0; i<friends.length; i++){
+            this.loadImage(friends[i].id, friends[i].thumbnailUrl,loadListener);
         }
+        this.loadImage(me.id, me.thumbnailUrl,loadListener);
+
         this.pushScene(this.loadingScene);
     },
 
@@ -246,7 +249,7 @@ enchant.mixi.Friends = enchant.Class.create({
         enchant.mixi.Friends.instance = this;
     },
 
-    getFriends: function(mode){
+    getFriends: function(){
         var friends_array = new Array();
 
         //Friendオブジェクト作る
@@ -266,7 +269,19 @@ enchant.mixi.Friends = enchant.Class.create({
         }
 
         return friends_array;
-    }
+    },
+
+    getSelf: function(){
+        var selfData = enchant.mixi.apiResult["people"]["/@self"];
+        console.log(selfData);
+        return new enchant.mixi.Friend(
+            selfData.id,
+            selfData.displayName,
+            selfData.thumbnailUrl,
+            selfData.thumbnailDetails[0].height,
+            selfData.thumbnailDetails[0].width
+        );
+    },
 });
 
 enchant.mixi.Friend = enchant.Class.create( enchant.Group,{
@@ -392,15 +407,15 @@ function _convert_res_as_hash_for_persistence(array){
     return hash_res;
 }
 function _convert_res_as_hash_for_people(array, target){
-    var hash_res = {};
+    var res = {};
     if(target =="/@self"){
-        hash_res[array.id] = array;
+        return array;
     }
     else {
         for(var i in array){
-            hash_res[array[i].id] = array[i];
+            res[array[i].id] = array[i];
         }
     }
-    return hash_res;
+    return res;
 }
 })();
