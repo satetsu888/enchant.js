@@ -315,12 +315,32 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
     initialize: function(){
         enchant.Group.call(this);
 
-        var friends = new enchant.mixi.Friends().getFriends("all");
+        console.log("ranking");
 
+        var rankingPeoples = new Array();
+
+        //set self data
+        var me = new enchant.mixi.Friends().getSelf();
+        me.data = enchant.mixi.apiResult["persistence"]["/@self"][me.id];
+        rankingPeoples.push(me);
+
+        // set friends data
+        var friends = new enchant.mixi.Friends().getFriends("all");
+        console.log(friends);
         for(var i in friends){
-            friends[i].resize(32,32);
-            friends[i].x = 32 * i;
-            this.addChild(friends[i]);
+            var data = enchant.mixi.apiResult["persistence"]["/@friends"][friends[i].id];
+            if(data){
+                friends[i].data = data;
+                rankingPeoples.push(friends[i]);
+            }
+        }
+        console.log(rankingPeoples);
+
+        // show people
+        for(var i in rankingPeoples){
+            rankingPeoples[i].resize(32,32);
+            rankingPeoples[i].x = 32 * i;
+            this.addChild(rankingPeoples[i]);
         }
     },
 });
