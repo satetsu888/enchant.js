@@ -292,10 +292,29 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Group,{
         this.id           = id;
         this.nickname     = nickname;
         this.thumbnailUrl = thumbnailUrl;
-        //this.image = game.assets[this.id];
+
         this.icon = new enchant.Sprite(img_width, img_height);
         this.icon.image = game.assets[this.id];
+
+        this.namePlate = new enchant.Label(this.nickname);
+        with(this.namePlate){
+            width = this.icon.width;
+            textAlign = "center";
+            visible = false;
+            y = this.icon.height;
+        }
+
+        this.scorePlate = new enchant.Label("");
+        with(this.scorePlate){
+            width = this.icon.width * 2;
+            textAlign = "center";
+            font = "15px 'Consolas', 'Monaco', 'ＭＳ ゴシック'";
+        }
+            console.log(this.scorePlate.font);
+
         this.addChild(this.icon);
+        this.addChild(this.namePlate);
+        this.addChild(this.scorePlate);
     },
 
     set_param: function(key, value){
@@ -306,6 +325,21 @@ enchant.mixi.Friend = enchant.Class.create( enchant.Group,{
         this.icon.scale(xsize/this.icon.width, ysize/this.icon.height);
         this.icon.x -= (this.icon.width  - xsize)/2;
         this.icon.y -= (this.icon.height - ysize)/2;
+
+        this.namePlate.x = -xsize*0.1;
+        this.namePlate.width = xsize*1.2;
+        this.namePlate.y = ysize;
+        this.scorePlate.x = xsize + xsize*0.1;
+        this.scorePlate.width = xsize*1.8;
+        this.scorePlate.y = ysize/2;
+    },
+
+    showNickname: function(bool){
+        this.namePlate.visible = bool;
+    },
+
+    showScore: function(text){
+        this.scorePlate.text = text;
     },
 
 });
@@ -316,6 +350,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
         enchant.Group.call(this);
 
         console.log("ranking");
+        var MARGIN = 5;
 
         var rankingPeoples = new Array();
 
@@ -326,7 +361,6 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
 
         // set friends data
         var friends = new enchant.mixi.Friends().getFriends("all");
-        console.log(friends);
         for(var i in friends){
             var data = enchant.mixi.apiResult["persistence"]["/@friends"][friends[i].id];
             if(data){
@@ -334,12 +368,14 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
                 rankingPeoples.push(friends[i]);
             }
         }
-        console.log(rankingPeoples);
 
         // show people
         for(var i in rankingPeoples){
             rankingPeoples[i].resize(32,32);
-            rankingPeoples[i].x = 32 * i;
+            rankingPeoples[i].showNickname(true);
+            console.log(rankingPeoples[i].data.high_score);
+            rankingPeoples[i].showScore(rankingPeoples[i].data.high_score);
+            rankingPeoples[i].x = (32*3 + MARGIN) * i + MARGIN;
             this.addChild(rankingPeoples[i]);
         }
     },
