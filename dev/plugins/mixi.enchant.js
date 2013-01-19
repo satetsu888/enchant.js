@@ -366,10 +366,11 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
 
     initialize: function(){
         enchant.Group.call(this);
-
         console.log("ranking");
+        this.drugging = false;
+        this.oldTouchX = 0;
+        this.x = 0;
         var MARGIN = 5;
-
         var rankingPeoples = new Array();
 
         var me = new enchant.mixi.Friends().getSelf();
@@ -404,6 +405,22 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
             rankingPeoples[i].x = (32*3 + MARGIN) * i + MARGIN;
             this.addChild(rankingPeoples[i]);
         }
+
+        // set touch event handler
+        this.addEventListener('touchstart', function(e){
+            console.log("touch ranking");
+            this.drugging = true;
+        });
+        this.addEventListener('touchend', function(e){
+            this.drugging = false;
+        });
+        this.addEventListener('touchmove', function(e){
+            console.log("move ranking");
+            if(this.drugging == true){
+                this.x += e.x - this.oldTouchX;
+            }
+            this.oldTouchX = e.x
+        });
     },
 });
 
