@@ -196,8 +196,22 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         this.pushScene(this.loadingScene);
     },
 
-    end: function(){
+    end: function(score, message){
         game.pause();
+        var so = new enchant.mixi.SharedObject();
+        var set_params = {};
+        set_params.last_score = score;
+        var me = new enchant.mixi.Friends().getSelf();
+        if(me.data){
+            if(me.data.high_score < score){
+                set_params.high_score = score;
+            }
+        }
+
+        so.set(set_params, function(res){
+            console.log("callback function called");
+            console.log(res);
+        });
     },
 
 });
@@ -265,6 +279,7 @@ enchant.mixi.Friends = enchant.Class.create({
             peoples[i].thumbnailDetails[0].height,
             peoples[i].thumbnailDetails[0].width
             );
+        friend.data = enchant.mixi.apiResult["persistence"]["/@friends"][peoples[i].id];
         friends_array.push(friend);
         }
 
@@ -274,13 +289,15 @@ enchant.mixi.Friends = enchant.Class.create({
     getSelf: function(){
         var selfData = enchant.mixi.apiResult["people"]["/@self"];
         console.log(selfData);
-        return new enchant.mixi.Friend(
+        var me = new enchant.mixi.Friend(
             selfData.id,
             selfData.displayName,
             selfData.thumbnailUrl,
             selfData.thumbnailDetails[0].height,
             selfData.thumbnailDetails[0].width
         );
+        me.data = enchant.mixi.apiResult["persistence"]["/@self"][me.id];
+        return me;
     },
 });
 
@@ -356,15 +373,13 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
 
         //set self data
         var me = new enchant.mixi.Friends().getSelf();
-        me.data = enchant.mixi.apiResult["persistence"]["/@self"][me.id];
         rankingPeoples.push(me);
 
         // set friends data
         var friends = new enchant.mixi.Friends().getFriends("all");
+       console.log(friends);
         for(var i in friends){
-            var data = enchant.mixi.apiResult["persistence"]["/@friends"][friends[i].id];
-            if(data){
-                friends[i].data = data;
+            if(friends[i].data){
                 rankingPeoples.push(friends[i]);
             }
         }
