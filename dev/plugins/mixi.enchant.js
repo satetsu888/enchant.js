@@ -369,6 +369,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
         console.log("ranking");
         this.drugging = false;
         this.oldTouchX = 0;
+        this.vx = 0;
         this.x = 0;
         var MARGIN = 5;
         var rankingPeoples = new Array();
@@ -406,10 +407,13 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
             this.addChild(rankingPeoples[i]);
         }
 
+        this.width = Math.max(window.screen.width, rankingPeoples.length * (MARGIN *2 + 32 * 3));
+
         // set touch event handler
         this.addEventListener('touchstart', function(e){
             console.log("touch ranking");
             this.drugging = true;
+            this.oldTouchX = e.x
         });
         this.addEventListener('touchend', function(e){
             this.drugging = false;
@@ -418,8 +422,22 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
             console.log("move ranking");
             if(this.drugging == true){
                 this.x += e.x - this.oldTouchX;
+                this.vx = Math.min(1000, (e.x - this.oldTouchX)* 0.73);
             }
             this.oldTouchX = e.x
+        });
+        this.addEventListener('enterframe', function(e){
+            if(this.drugging == false){
+                this.x += this.vx;
+                this.vx *= 0.99;
+                if(this.x + this.width < window.screen.width +10){
+                    this.x = window.screen.width + 10 - this.width;
+                }
+                if(this.x > 10){
+                    this.x = 10;
+                }
+            }
+            console.log(this.width);
         });
     },
 });
