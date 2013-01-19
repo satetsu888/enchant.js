@@ -205,6 +205,7 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         if(me.data){
             if(me.data.high_score < score){
                 set_params.high_score = score;
+                // TODO: rankingに表示しているスコアを書き換える
             }
         }
 
@@ -371,18 +372,28 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
 
         var rankingPeoples = new Array();
 
-        //set self data
         var me = new enchant.mixi.Friends().getSelf();
         rankingPeoples.push(me);
 
-        // set friends data
+        // filter friends
         var friends = new enchant.mixi.Friends().getFriends("all");
-       console.log(friends);
         for(var i in friends){
             if(friends[i].data){
                 rankingPeoples.push(friends[i]);
             }
         }
+
+        // sort by data.high_sore
+        rankingPeoples.sort(
+            function(a,b){
+                if(a.data.high_score > b.data.high_score){
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
+            }
+        );
 
         // show people
         for(var i in rankingPeoples){
