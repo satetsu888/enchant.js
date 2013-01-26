@@ -205,13 +205,13 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         if(me.data){
             if(me.data.high_score < score){
                 set_params.high_score = score;
-                // TODO: rankingに表示しているスコアを書き換える
             }
         }
 
         so.set(set_params, function(res){
             console.log("callback function called");
             console.log(res);
+            enchant.mixi.socialranking.setSelfScore(score);
         });
     },
 
@@ -367,6 +367,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
     initialize: function(){
         enchant.Group.call(this);
         console.log("ranking");
+        enchant.mixi.socialranking = this;
         this.drugging = false;
         this.oldTouchX = 0;
         this.vx = 0;
@@ -374,8 +375,8 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
         var MARGIN = 5;
         var rankingPeoples = new Array();
 
-        var me = new enchant.mixi.Friends().getSelf();
-        rankingPeoples.push(me);
+        this.me = new enchant.mixi.Friends().getSelf();
+        rankingPeoples.push(this.me);
 
         // filter friends
         var friends = new enchant.mixi.Friends().getFriends("all");
@@ -415,7 +416,7 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
             this.drugging = true;
             this.oldTouchX = e.x
         });
-        this.addEventListener('touchend', function(e){
+        this.addEventListener('touch)end', function(e){
             this.drugging = false;
         });
         this.addEventListener('touchmove', function(e){
@@ -439,6 +440,10 @@ enchant.mixi.SocialRanking = enchant.Class.create(enchant.Group, {
             }
             console.log(this.width);
         });
+    },
+
+    setSelfScore: function(newScore){
+        this.me.showScore(newScore);
     },
 });
 
