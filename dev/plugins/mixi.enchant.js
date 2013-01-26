@@ -211,7 +211,9 @@ enchant.mixi.MixiGame = enchant.Class.create(enchant.Game, {
         so.set(set_params, function(res){
             console.log("callback function called");
             console.log(res);
-            enchant.mixi.socialranking.setSelfScore(score);
+            if(me.data.high_score < score){
+                enchant.mixi.socialranking.setSelfScore(score);
+            }
         });
     },
 
