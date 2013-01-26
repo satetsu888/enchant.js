@@ -60,7 +60,7 @@ sub request {
 sub json_request {
     my ($method, $url, $data_arr) = @_;
     $data_arr = encode_json($data_arr);
-    warn $data_arr;
+    #warn $data_arr;
 
     my $req = HTTP::Request->new(
         $method => $url
@@ -119,8 +119,8 @@ sub call {
     my $res;
 
     #warn Data::Dumper::Dumper uc $method;
-    warn Data::Dumper::Dumper $url;
-    warn Data::Dumper::Dumper $param;
+    #warn Data::Dumper::Dumper $url;
+    #warn Data::Dumper::Dumper $param;
 
     if($method eq 'get'){
         $res = request(uc $method, $url, $param);
@@ -158,9 +158,22 @@ if($code){
 
 #warn Data::Dumper::Dumper $token;
 #warn Data::Dumper::Dumper $target;
-warn Data::Dumper::Dumper $param;
 $param = decode_json($param) if defined $param;
+#warn 'total: '.$result->{totalResults};
+#warn 'start: '.$result->{startIndex};
+#warn 'itemp: '.$result->{itemsPerPage};
+
+$param->{startIndex} = 0;
 my $result = call($api, $method, $token, $param);
+while ($api eq 'people' && $target eq '/@friends' && $result->{totalResults} > scalar @{$result->{entry}}){
+    $param->{startIndex} = $result->{startIndex} + $result->{itemsPerPage} + 1;
+    my $next = call($api, $method, $token, $param);
+    map {
+        push @{$result->{entry}}, $_;
+    } @{$next->{entry}};
+#    warn Data::Dumper::Dumper $result;
+#    warn Data::Dumper::Dumper $next;
+}
 
 my $json_href = { token => $token, result => $result };
 print encode_json($json_href);
